@@ -1,7 +1,3 @@
-#memo
-#実行：右上の▷
-
-import errno
 import subprocess
 from datetime import datetime
 from openpyxl.utils import get_column_letter
@@ -10,14 +6,8 @@ from openpyxl.styles import Alignment
 import math
 import statistics
 from openpyxl.chart import BarChart, Reference, Series
-from openpyxl.drawing.fill import PatternFillProperties, ColorChoice
-from openpyxl.chart.marker import DataPoint
-from openpyxl.chart.label import DataLabel, DataLabelList
 from openpyxl.styles.borders import Border, Side
-from openpyxl.chart import LineChart, Reference, Series
 from openpyxl.chart.error_bar import ErrorBars
-import xlwings as xw
-
 
 #シート読み込み
 sheet = excel.load_workbook("qpcr-data.xlsx", data_only=True).active
@@ -63,15 +53,15 @@ resultSheet.append (["計算("+genes[1]+")",genes[0],genes[1],"power","avepower"
 
 #各データの書き込み
 # data1(アクチン)
-a = 2
+row = 2
 for i ,data in enumerate(data1):
-    resultSheet["B" + str(a)] = data
-    a += 1
+    resultSheet["B" + str(row)] = data
+    row += 1
 # data2(評価遺伝子)
-a = 2
+row = 2
 for i ,data in enumerate(data2):
-    resultSheet["C" + str(a)] = data
-    a+=1
+    resultSheet["C" + str(row)] = data
+    row+=1
 
 #サンプルネームを取得し設定
 sampleNames = []
@@ -82,15 +72,15 @@ for i in range(5,9):
     sampleNames.append(sampleName)
 
 #サンプル名の書き込みおよびN数に応じたセルの結合
-a=2
+row=2
 for number , sampleName in enumerate(sampleNames): 
-    if a > length1:
+    if row > length1:
         break
-    if a % 1 == 0 or a % n == 0:
-        resultSheet.cell(row=a,column=1,value = sampleName)
-        resultSheet.merge_cells(range_string="A"+str(a)+":"+"A"+str(n+a-1))
-        resultSheet["A"+str(a)].alignment = Alignment(horizontal="center", vertical="center")
-    a += n
+    if row % 1 == 0 or row % n == 0:
+        resultSheet.cell(row=row,column=1,value = sampleName)
+        resultSheet.merge_cells(range_string="A"+str(row)+":"+"A"+str(n+row-1))
+        resultSheet["A"+str(row)].alignment = Alignment(horizontal="center", vertical="center")
+    row += n
 
 #計算結果用基礎を書き込み→グラフ作成に利用
 resultSheet["K2"] = "相対値平均pr1"
@@ -112,24 +102,24 @@ for i in range(length2):
     resultSheet.cell(row= (i+2), column=4,value=power)
 
 #avepowerを算出
-a=2
+row=2
 for number , sample in enumerate(data2): 
-    if a > length2:
+    if row > length2:
         break
     # 計算処理 aからn個下までの列の数値から平均を算出
-    if a % 1 == 0 or a % n == 0:
+    if row % 1 == 0 or row % n == 0:
         sum = 0
         copy_n = n
         for i in range(n):
-            power_i = resultSheet.cell(row= a+i,column=4).value
+            power_i = resultSheet.cell(row= row+i,column=4).value
             if power_i == None:
                 copy_n -= 1
                 continue
             else:
                 sum += power_i 
             avepower = sum/copy_n
-            resultSheet.cell(row=a,column=5,value = avepower)
-    a += n
+            resultSheet.cell(row=row,column=5,value = avepower)
+    row += n
 
 #相対値PR1値を算出
 for i in range(length2):
@@ -145,42 +135,42 @@ for i in range(length2):
         resultSheet.cell(row=i+2,column=6,value = pr1)
 
 #相対値平均PR1算出
-c=2
+row=2
 for number , sample in enumerate(data2): 
-    if c > length2:
+    if row > length2:
         break
     # 計算処理 aからn個下までの列の数値から平均を算出
-    if c % 1 == 0 or c % n == 0:
+    if row % 1 == 0 or row % n == 0:
         sum = 0
         copy_n = n
         for i in range(n):
-            pr1 = resultSheet.cell(row= c+i,column=6).value
+            pr1 = resultSheet.cell(row= row+i,column=6).value
             if pr1 == None:
                 copy_n -= 1
                 continue
             else:
                 sum += pr1
             avepr1 = sum/copy_n
-            resultSheet.cell(row=c,column=7,value = avepr1)
-    c += n
+            resultSheet.cell(row=row,column=7,value = avepr1)
+    row += n
 
 #求めた相対値平均PR1を要約スペース(グラフ作成用)にも書き込み
-e = 2
+row = 2
 for i in range(n-1):
-    avepr1 = resultSheet. cell(row=e,column=7).value
+    avepr1 = resultSheet. cell(row=row,column=7).value
     resultSheet.cell(row=i+3,column=11,value=avepr1)
-    e += n
+    row += n
 
 #誤算算出
-a = 2
+row = 2
 for number , sample in enumerate(data2): 
-    if a > length2:
+    if row > length2:
         break
-    if a % 1 == 0 or a % n == 0:
+    if row % 1 == 0 or row % n == 0:
         pr1_row = []
         copy_n = n
         for i in range(n):
-            pr1 = resultSheet.cell(row= a+i,column=6).value
+            pr1 = resultSheet.cell(row= row+i,column=6).value
 
             if pr1 == None:
                 copy_n -= 1
@@ -190,15 +180,15 @@ for number , sample in enumerate(data2):
 
         pr1_stdev = statistics.stdev(pr1_row)
         gosa = pr1_stdev / math.sqrt(copy_n)
-        resultSheet.cell(row=a,column=8,value = gosa)
-    a += n
+        resultSheet.cell(row=row,column=8,value = gosa)
+    row += n
 
 #求めた誤差を要約スペース(グラフ作成用)にも書き込み
-e = 2
+row= 2
 for i in range(n-1):
-    gosa = resultSheet.cell(row=e,column=8).value
+    gosa = resultSheet.cell(row=row,column=8).value
     resultSheet.cell(row=i+3,column=12,value=gosa)
-    e += n
+    row += n
 
 # グラフ表示
 chart = BarChart()
@@ -247,6 +237,6 @@ current_datetime = datetime.now()
 formatted_datetime = current_datetime.strftime("%Y:%m:%-d:%H:%M")
 book.save(f"result_qpcr_{formatted_datetime}.xlsx")
 
-#保存したファイルを自動でオープン(iosのみ有効らしい)
+#保存したファイルを自動でオープン(※iosのみ有効)
 excel_file_path = f"result_qpcr_{formatted_datetime}.xlsx"
 subprocess.Popen(['open', excel_file_path])
