@@ -1,13 +1,14 @@
 import subprocess
-from datetime import datetime
-from openpyxl.utils import get_column_letter
-import openpyxl as excel
-from openpyxl.styles import Alignment
 import math
 import statistics
-from openpyxl.chart import BarChart, Reference, Series
+import openpyxl as excel
+from datetime import datetime
+from openpyxl.utils import get_column_letter
+from openpyxl.styles import Alignment
+from openpyxl.chart import BarChart, Reference
 from openpyxl.styles.borders import Border, Side
 from openpyxl.chart.error_bar import ErrorBars
+from openpyxl.chart.reference import Reference
 
 #シート読み込み
 sheet = excel.load_workbook("qpcr-data.xlsx", data_only=True).active
@@ -15,6 +16,7 @@ sheet = excel.load_workbook("qpcr-data.xlsx", data_only=True).active
 book = excel.Workbook()
 resultSheet = book.active
 
+#各遺伝子のcp値の空配列を定義
 data1 = [] #アクチン
 data2 = [] #評価遺伝子
 
@@ -65,7 +67,7 @@ for i ,data in enumerate(data2):
 
 #サンプルネームを取得し設定
 sampleNames = []
-for i in range(5,9):
+for i in range(4,8):
     sampleName = sheet.cell(row=3,column=i).value
     if sampleName == None:
         sampleName = "未入力"
@@ -194,7 +196,7 @@ for i in range(n-1):
 chart = BarChart()
 chart.width = 20
 chart.height = 14
-chart.title = "Result"              
+chart.title = resultSheet.cell(row=2,column=10).value
 chart.y_axis.title = '発現量'
 chart.legend.position = 'b' 
 chart_data = Reference(resultSheet, min_col=11, max_col=11, min_row=2, max_row=2 + number_of_data)
@@ -209,9 +211,11 @@ chart.gapwidth = 15
 # エラーバーを追加してグラフを完成　なぜかエラーバーが表示されていない
 error_bars_data = Reference(resultSheet, min_col=12, max_col=12, min_row=3, max_row=2 + number_of_data)
 error_bars = ErrorBars()
+error_bars.errDir = "y"
 error_bars.errorBarType = "custom"
 chart.series[0].errorBars = error_bars
-resultSheet.add_chart(chart, "J10")
+resultSheet.add_chart(chart, "J9")
+
 
 # 罫線設定(行目よりn数ごとに分割)
 border = Border(bottom=Side(style='thin', color='000000'))
