@@ -1,3 +1,4 @@
+#ライブラリimport
 import subprocess
 import math
 import statistics
@@ -9,9 +10,6 @@ from openpyxl.chart import BarChart, Reference
 from openpyxl.styles.borders import Border, Side
 from openpyxl.chart.error_bar import ErrorBars
 from openpyxl.chart.reference import Reference
-
-from openpyxl.chart import ScatterChart, Reference, Series
-from openpyxl.chart.series_factory import SeriesFactory
 
 #シート読み込み
 sheet = excel.load_workbook("qpcr-data.xlsx", data_only=True).active
